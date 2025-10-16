@@ -1,0 +1,61 @@
+model:
+  id: "ORDER_CUSTOMER_MODEL"
+  name: "OrderCustomerModel"
+  definition: "A model representing orders placed by customers"
+  description: "Simple model showing the relationship between orders and customers"
+
+  entities:
+    - id: "ORDER"
+      name: "ORDER"
+      definition: "A customer order"
+      description: "Represents an order placed by a customer"
+      attributes:
+        - id: "ORDER_AMOUNT"
+          name: "ORDER_AMOUNT"
+          effective_timestamp: true
+          group:
+            - id: "ORDER_AMOUNT"
+              name: "ORDER_AMOUNT"
+              definition: "The monetary amount of the order"
+              description: "Total value of the order"
+              type: "NUMBER"
+            - id: "ORDER_AMOUNT_CURRENCY"
+              name: "ORDER_AMOUNT_CURRENCY"
+              definition: "Currency of the order amount"
+              description: "Three-letter currency code (e.g., USD, EUR)"
+              type: "STRING"
+        - id: "ORDER_NUMBER"
+          name: "ORDER_NUMBER"
+          definition: "Unique identifier for the order"
+          description: "Primary key for order records"
+          type: "STRING"
+          effective_timestamp: true
+        - id: "ORDER_TS"
+          name: "ORDER_TS"
+          definition: "Timestamp when the order was placed"
+          description: "When the order was created in the system"
+          type: "START_TIMESTAMP"
+        - id: "ORDER_DELIVERY_TS"
+          name: "ORDER_DELIVERY_TS"
+          definition: "Timestamp when the order was delivered"
+          description: "When the order was delivered to the customer"
+          type: "END_TIMESTAMP"
+
+    - id: "CUSTOMER"
+      name: "CUSTOMER"
+      definition: "A customer account"
+      description: "Entity representing a person or organization that places orders"
+      attributes:
+        - id: "CUSTOMER_NAME"
+          name: "CUSTOMER_NAME"
+          definition: "Name of the customer"
+          description: "Full name of the customer"
+          type: "STRING"
+          effective_timestamp: true
+
+  relationships:
+    - name: "IS_PLACED_BY"
+      definition: "Relationship connecting an order to the customer who placed it"
+      description: "Links orders to their respective customers"
+      source_entity: "ORDER"
+      target_entity: "CUSTOMER"
