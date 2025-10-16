@@ -1,0 +1,101 @@
+# Template for mapping entity: CUSTOMER
+# ----------------------------------------
+# This template was generated from model.json using daana-cli
+# Model source: order-customer-model.json
+# Generated at: 2025-05-14T00:20:43+02:00
+# ----------------------------------------
+# IMPORTANT: This template contains two types of information:
+#  1. MODEL-DERIVED: Entity names, attribute names, types, and relationships from model.json
+#  2. ASSUMPTIONS: Table names, column names, and SQL expressions which MUST BE CUSTOMIZED
+#
+# Before using this template, you must:
+#  - Verify and adjust all table names, column names and SQL expressions
+#  - Ensure transformation expressions match your actual database schema
+#  - Run validation after customization: daana-cli lint --in your-mapping.yaml
+# ----------------------------------------
+
+# Fields below track template source
+template_model_source: "order-customer-model.json" # Source model.json filename
+template_generated_at: "2025-05-14T00:20:43+02:00" # When this template was generated
+
+# MODEL-DERIVED: Entity name from model.json
+entity: CUSTOMER
+
+mapping_groups:
+  - name: default_mapping_group # Name of the mapping group (e.g., 'current_data', 'historical_data')
+    allow_multiple_identifiers: false # Set to true only if this entity needs multiple primary keys
+
+    tables:
+      # Olist customer data from seed dataset
+      - connection: "dev" # Must match connection profile name in connection-profiles.yaml
+        table: stage.olist_customers_dataset # Olist customer table with schema prefix
+
+        # Primary key from olist dataset
+        primary_keys:
+          - customer_id # Primary key from olist_customers_dataset
+
+        # Ingestion strategy options: FULL, FULL_LOG, INCREMENTAL, TRANSACTIONAL
+        # FULL: Load the entire table each time (for small tables)
+        # INCREMENTAL: Only load records that have changed (for large tables)
+        # FULL_LOG: Track all record versions over time
+        # TRANSACTIONAL: Process individual transactions, not snapshots
+        ingestion_strategy: FULL # Using FULL for olist seed data (static dataset)
+
+        # Attribute mappings define how source data maps to entity attributes
+        # MODEL-DERIVED: Attribute names and types come from model.json
+        attributes:
+          # MODEL-DERIVED: Attribute from model.json
+          - name: CUSTOMER_NAME
+            # Text attribute - using customer_city as name since olist doesn't have customer names
+            # Type: STRING
+            # Definition: Name of the customer
+            transformation_expression: customer_city
+
+      # ASSUMPTION: Example of a second table in the same mapping group
+      # This is entirely an EXAMPLE and should be customized or removed
+      # Uncomment and modify as needed
+      # - connection: "postgres"
+      #   table: customer_details
+      #   primary_keys:
+      #     - customer_detail_id
+      #   ingestion_strategy: INCREMENTAL
+      #   where: "customer_id IN (SELECT id FROM customers WHERE status != 'DELETED')"
+      #   effective_datetime: last_modified_at
+      #   attributes:
+      #     - name: CUSTOMER_NAME
+      #       transformation_expression: "name"
+      #
+      #     - name: CALCULATED_EXAMPLE
+      #       transformation_expression: "quantity * unit_price"
+      #
+      #     - name: JOINED_EXAMPLE
+      #       transformation_expression: >
+      #         (SELECT category_name
+      #          FROM categories c
+      #          WHERE c.id = customer_details.category_id)
+      #
+  # ASSUMPTION: Example of a second mapping group (e.g., for historical data)
+  # This is entirely an EXAMPLE and should be customized or removed
+  # Uncomment and modify as needed
+  # - name: historical_customers
+  #   allow_multiple_identifiers: false
+  #   tables:
+  #     - connection: archive_db
+  #       table: historical_customers
+  #       primary_keys:
+  #         - legacy_customer_id
+  #       ingestion_strategy: FULL
+  #       effective_datetime: record_timestamp
+  #       where: "archived_date IS NOT NULL"
+  #       attributes:
+  #         # Add attributes for historical data mapping
+  #         - name: EXAMPLE_HISTORICAL_ATTRIBUTE
+  #           transformation_expression: historical_value
+
+# ----------------------------------------
+# VALIDATION INSTRUCTIONS:
+# After customizing this template to match your actual data source:
+# 1. Save this file as customer-mapping.yaml
+# 2. Validate it with: daana-cli lint --in customer-mapping.yaml
+# 3. Compile it with: daana-cli compile mapping --in customer-mapping.yaml --out customer-mapping.json
+# ----------------------------------------

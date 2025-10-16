@@ -1,0 +1,123 @@
+# Template for mapping entity: ORDER
+# ----------------------------------------
+# This template was generated from model.json using daana-cli
+# Model source: order-customer-model.json
+# Generated at: 2025-05-14T00:20:43+02:00
+# ----------------------------------------
+# IMPORTANT: This template contains two types of information:
+#  1. MODEL-DERIVED: Entity names, attribute names, types, and relationships from model.json
+#  2. ASSUMPTIONS: Table names, column names, and SQL expressions which MUST BE CUSTOMIZED
+#
+# Before using this template, you must:
+#  - Verify and adjust all table names, column names and SQL expressions
+#  - Ensure transformation expressions match your actual database schema
+#  - Run validation after customization: daana-cli lint --in your-mapping.yaml
+# ----------------------------------------
+
+# Fields below track template source
+template_model_source: "order-customer-model.json" # Source model.json filename
+template_generated_at: "2025-05-14T00:20:43+02:00" # When this template was generated
+
+# MODEL-DERIVED: Entity name from model.json
+entity: ORDER
+
+mapping_groups:
+  - name: default_mapping_group # Name of the mapping group (e.g., 'current_data', 'historical_data')
+    allow_multiple_identifiers: false # Set to true only if this entity needs multiple primary keys
+
+    tables:
+      # Table 1: Olist orders - basic order info
+      - connection: "dev" # Must match connection profile name in connection-profiles.yaml
+        table: stage.olist_orders_dataset
+
+        primary_keys:
+          - order_id
+
+        ingestion_strategy: FULL
+        effective_datetime: "order_purchase_timestamp"
+
+        attributes:
+          - name: ORDER_NUMBER
+            transformation_expression: order_id
+
+          - name: ORDER_TS
+            transformation_expression: order_purchase_timestamp
+
+      # Table 2: Olist order payments - amount calculation
+      - connection: "dev" # Must match connection profile name in connection-profiles.yaml
+        table: stage.olist_order_payments_dataset_v2
+
+        primary_keys:
+          - order_id
+
+        ingestion_strategy: FULL
+
+        attributes:
+          - name: ORDER_AMOUNT
+            # Use window function to sum payment values per order
+            transformation_expression: "round(sum(payment_value) over (partition by order_id)::numeric,2)"
+
+          - name: ORDER_AMOUNT_CURRENCY
+            transformation_expression: "'BRL'"
+
+        relationships:
+          - atomic_context: ORDER_IS_PLACED_BY_CUSTOMER
+            source_table: stage.olist_orders_dataset
+            target_transformation_expression: customer_id
+
+      # ASSUMPTION: Example of a second table in the same mapping group
+      # This is entirely an EXAMPLE and should be customized or removed
+      # Uncomment and modify as needed
+      # - connection: "postgres"
+      #   table: order_details
+      #   primary_keys:
+      #     - order_detail_id
+      #   ingestion_strategy: FULL_LOG
+      #   where: "order_id IN (SELECT id FROM orders WHERE status != 'DELETED')"
+      #   effective_datetime: last_modified_at
+      #   attributes:
+      #     - name: ORDER_AMOUNT
+            transformation_expression: >
+              (SELECT
+                COALESCE(base_amount, 0) + COALESCE(tax_amount, 0) + 
+                CASE
+                  WHEN shipping_amount > 0 THEN shipping_amount
+                  ELSE 0
+                END
+              FROM sales_orders so
+              WHERE so.order_id = sales_orders.order_id)
+      #
+      #     - name: CALCULATED_EXAMPLE
+      #       transformation_expression: "quantity * unit_price"
+      #
+      #     - name: JOINED_EXAMPLE
+      #       transformation_expression: >
+      #         (SELECT category_name
+      #          FROM categories c
+      #          WHERE c.id = order_details.category_id)
+      #
+  # ASSUMPTION: Example of a second mapping group (e.g., for historical data)
+  # This is entirely an EXAMPLE and should be customized or removed
+  # Uncomment and modify as needed
+  # - name: historical_orders
+  #   allow_multiple_identifiers: false
+  #   tables:
+  #     - connection: archive_db
+  #       table: historical_orders
+  #       primary_keys:
+  #         - legacy_order_id
+  #       ingestion_strategy: FULL
+  #       effective_datetime: record_timestamp
+  #       where: "archived_date IS NOT NULL"
+  #       attributes:
+  #         # Add attributes for historical data mapping
+  #         - name: EXAMPLE_HISTORICAL_ATTRIBUTE
+  #           transformation_expression: historical_value
+
+# ----------------------------------------
+# VALIDATION INSTRUCTIONS:
+# After customizing this template to match your actual data source:
+# 1. Save this file as order-mapping.yaml
+# 2. Validate it with: daana-cli lint --in order-mapping.yaml
+# 3. Compile it with: daana-cli compile mapping --in order-mapping.yaml --out order-mapping.json
+# ----------------------------------------
