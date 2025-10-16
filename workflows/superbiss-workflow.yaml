@@ -1,0 +1,56 @@
+# ---------------------------------------------------------------------------
+# WORKFLOW TEMPLATE  –  edit & rename before use
+#
+# HOW IT FITS TOGETHER
+#  • connections.yml           – defines one or more DATABASE/WAREHOUSE profiles
+#  • this workflow YAML        – picks ONE profile/output as SOURCE, ONE as TARGET
+#  • model YAML / JSON         – the logical data model (entities, attributes…)
+#  • mapping YAMLs             – how raw tables map into the model
+#
+# A typical flow:
+#   1. daana-cli lint   workflow -i workflow.yaml
+#   2. daana-cli run    workflow -i workflow.yaml
+# ---------------------------------------------------------------------------
+workflow:
+  # -------------------------------------------------------------------------
+  # 1) Workflow definition
+  # -------------------------------------------------------------------------
+  name: "TODO_ORDER_CUSTOMER_WORKFLOW" # REQUIRED – unique, UPPER_SNAKE_CASE
+  definition: "ETL workflow for order + customer" # one-liner
+  description: | # free-text, Markdown allowed
+    Processes order and customer data from the *raw lake*
+    into the **analytics layer** (`DAANA_DW`).
+    Supports incremental loads with validation and error tracking.
+
+  # -------------------------------------------------------------------------
+  # 2) Choose the connection profile defined in connections-profiles.yaml
+  # -------------------------------------------------------------------------
+  connection_profile: "dev"
+
+  # -------------------------------------------------------------------------
+  # 3) Choose model file – logical definition
+  # -------------------------------------------------------------------------
+  model:
+    file: "example_yaml/order-customer-model.yaml"
+
+  # -------------------------------------------------------------------------
+  # 4) Choose mapping files – one or many, processed top→bottom
+  #    Tip: list parents before children if FKs exist.
+  # -------------------------------------------------------------------------
+  mappings:
+    - "example_yaml/customer-mapping.yaml"
+    - "example_yaml/order-mapping.yaml"
+
+  # -------------------------------------------------------------------------
+  # 5) Advanced settings – batch filters, custom SQL snippets, etc.
+  # -------------------------------------------------------------------------
+  # NOTE: Batch processing is commented out for test-flow
+  # Uncomment and configure batch settings when needed:
+  #
+  # advanced:
+  #   # Column in source tables that marks ingestion/event time
+  #   batch_column: ingestion_timestamp
+  #   # Template vars are resolved at runtime (provided by CLI or orchestrator)
+  #   read_logic: |
+  #     {{ batch_column }} > '${BATCH_START}'
+  #     AND {{ batch_column }} <= '${BATCH_END}'

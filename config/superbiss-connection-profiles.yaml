@@ -1,0 +1,66 @@
+# ---------------------------------------------------------------------------
+# CONNECTION PROFILES – database/warehouse endpoints
+# ---------------------------------------------------------------------------
+connection_profiles:
+  # Each top-level key defines a connection profile for the customer's database
+  # The customer database contains both source data and the focal warehouse
+
+  # Development environment
+  dev:
+    type: "postgresql"
+    host: "localhost"
+    port: 5432
+    user: "dev"
+    password: "devpass"
+    database: "customerdb"
+    sslmode: "disable"
+    target_schema: "daana_dw"
+
+  # Production PostgreSQL environment
+  prod:
+    type: "postgresql"
+    host: "prod_host_placeholder"
+    port: 5432
+    user: "${DW_USER}"
+    password: "${DW_PASSWORD}"
+    database: "analytics"
+    sslmode: "require"
+    target_schema: "daana_dw"
+
+  # PostgreSQL with advanced connection settings
+  test-postgresql:
+    type: "postgresql"
+    host: "postgres-server"
+    port: 5432
+    user: "${PG_USER}"
+    password: "${PG_PASSWORD}"
+    database: "source_db"
+    sslmode: "require"
+    connect_timeout: 15
+    application_name: "daana-cli"
+    pool_min_conns: 1
+    pool_max_conns: 10
+    target_schema: "daana_dw"
+
+  # BigQuery with service account authentication
+  test-bigquery:
+    type: "bigquery"
+    project_id: "test-project-id"
+    dataset_id: "raw_data"
+    location: "US"
+    credentials_file: "${BQ_CREDENTIALS_FILE}"
+    timeout: 30
+    target_schema: "analytics"
+
+  # Snowflake with role-based access
+  test-snowflake:
+    type: "snowflake"
+    account: "myaccount"
+    user: "${SNOWFLAKE_USER}"
+    password: "${SNOWFLAKE_PASSWORD}"
+    warehouse: "compute_wh"
+    database: "source_db"
+    schema: "public"
+    role: "analyst"
+    region: "us-east-1"
+    target_schema: "DAANA_DW"
